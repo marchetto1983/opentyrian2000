@@ -1,7 +1,22 @@
-# --- Display ST7789 (SPI) ---
+# =====================================================================
+# sdkconfig.defaults per la board custom ESP32-S3
+# Display ST7789V 320x240 SPI2 @ 80MHz + SD Card SPI3 + Audio I2S
+# Uso: idf.py -D "SDKCONFIG_DEFAULTS=sdkconfig.defaults.esp32s3-custom" build
+# =====================================================================
+
+# --- Target ---
+CONFIG_IDF_TARGET="esp32s3"
+
+# --- PSRAM (verifica che il tuo modulo la supporti / sia abilitata) ---
+CONFIG_SPIRAM=y
+
+# =====================================================================
+# DISPLAY ST7789 - SPI2 (pin IO_MUX per clock alto, 10-13)
+# =====================================================================
 CONFIG_BSP_DISPLAY_ENABLED=y
 CONFIG_BSP_DISPLAY_INTERFACE_SPI=y
 CONFIG_BSP_DISPLAY_DRIVER_ST7789=y
+
 CONFIG_BSP_DISPLAY_SCLK_GPIO=12
 CONFIG_BSP_DISPLAY_MOSI_GPIO=11
 CONFIG_BSP_DISPLAY_MISO_GPIO=-1
@@ -9,13 +24,42 @@ CONFIG_BSP_DISPLAY_CS_GPIO=10
 CONFIG_BSP_DISPLAY_DC_GPIO=14
 CONFIG_BSP_DISPLAY_RST_GPIO=15
 CONFIG_BSP_DISPLAY_BACKLIGHT_GPIO=17
+
 CONFIG_BSP_DISPLAY_COLOR_SPACE_RGB=y
-# Adatta questi due alla risoluzione REALE del tuo pannello ST7789
-# (i moduli comuni sono 240x240, 135x240 o 240x320 — il default del file è 320x240)
+# Se i colori risultano invertiti (rosso/blu scambiati), commenta la riga
+# sopra e usa CONFIG_BSP_DISPLAY_COLOR_SPACE_BGR=y, oppure prova
+# CONFIG_BSP_DISPLAY_INVERT_COLOR=y
+
 CONFIG_BSP_DISPLAY_WIDTH=320
 CONFIG_BSP_DISPLAY_HEIGHT=240
+CONFIG_BSP_DISPLAY_HORIZONTAL_OFFSET=0
+CONFIG_BSP_DISPLAY_VERTICAL_OFFSET=0
 
-# --- Audio I2S (DAC) ---
+# Richiede di aver modificato "range 1 40" in "range 1 80" nel Kconfig
+CONFIG_BSP_DISPLAY_PIXEL_CLOCK=80
+# Se hai artefatti/glitch sul pannello, riprova prima con un valore
+# più basso (es. 40) per isolare se il problema è il clock o altro.
+
+CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH=1
+CONFIG_BSP_LCD_DRAW_BUF_HEIGHT=100
+CONFIG_BSP_LCD_DRAW_BUF_DOUBLE=n
+
+# =====================================================================
+# SD CARD - SPI3 dedicata (GPIO matrix, non serve IO_MUX per la SD)
+# =====================================================================
+CONFIG_SOC_SDSPI=y
+CONFIG_HW_SD_PIN_NUM_CLK=20
+CONFIG_HW_SD_PIN_NUM_MOSI=21
+CONFIG_HW_SD_PIN_NUM_MISO=19
+CONFIG_HW_SD_PIN_NUM_CS=18
+
+CONFIG_BSP_SD_MOUNT_POINT="/sd"
+CONFIG_BSP_SD_MAX_FILES=5
+CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL=n
+
+# =====================================================================
+# AUDIO I2S (DAC)
+# =====================================================================
 CONFIG_BSP_I2S_NUM=0
 CONFIG_BSP_I2S_MCLK=-1
 CONFIG_BSP_I2S_SCLK=7
@@ -23,20 +67,45 @@ CONFIG_BSP_I2S_LCLK=8
 CONFIG_BSP_I2S_DOUT=9
 CONFIG_BSP_I2S_DSIN=-1
 
-# --- LED integrato (facoltativo) ---
+# =====================================================================
+# LED RGB integrato (WS2812 su GPIO48)
+# =====================================================================
 CONFIG_BSP_LED_TYPE_RGB=y
 CONFIG_BSP_LEDS_NUM=1
 CONFIG_BSP_LED_RGB_GPIO=48
+CONFIG_BSP_LED_RGB_BACKEND_RMT=y
 
-# --- Pulsanti (esempio: su / giù / sx / dx / fuoco) ---
+# =====================================================================
+# PULSANTI (esempio: su / giu' / sx / dx / fuoco)
+# Modifica GPIO e numero secondo il tuo joystick/i tuoi tasti reali
+# =====================================================================
 CONFIG_BSP_BUTTONS_NUM=5
+
+CONFIG_BSP_BUTTON_1_TYPE_GPIO=y
 CONFIG_BSP_BUTTON_1_GPIO=4
 CONFIG_BSP_BUTTON_1_LEVEL=0
+
+CONFIG_BSP_BUTTON_2_TYPE_GPIO=y
 CONFIG_BSP_BUTTON_2_GPIO=5
 CONFIG_BSP_BUTTON_2_LEVEL=0
+
+CONFIG_BSP_BUTTON_3_TYPE_GPIO=y
 CONFIG_BSP_BUTTON_3_GPIO=6
 CONFIG_BSP_BUTTON_3_LEVEL=0
+
+CONFIG_BSP_BUTTON_4_TYPE_GPIO=y
 CONFIG_BSP_BUTTON_4_GPIO=16
 CONFIG_BSP_BUTTON_4_LEVEL=0
-CONFIG_BSP_BUTTON_5_GPIO=18
+
+CONFIG_BSP_BUTTON_5_TYPE_GPIO=y
+CONFIG_BSP_BUTTON_5_GPIO=35
 CONFIG_BSP_BUTTON_5_LEVEL=0
+
+# Pin ancora liberi per pulsanti extra (start/select/shoulder):
+# IO1, IO2, IO0, IO36, IO37, IO38, IO39, IO40, IO42, IO47
+
+# =====================================================================
+# I2C - non usato, lasciato disabilitato
+# =====================================================================
+CONFIG_BSP_I2C_GPIO_SCL=-1
+CONFIG_BSP_I2C_GPIO_SDA=-1
